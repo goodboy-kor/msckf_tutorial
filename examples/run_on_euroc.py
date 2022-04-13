@@ -40,11 +40,13 @@ levels = {
 }
 
 
+# python.py --help 를 했을 때 출력될 문장
 @click.command()
 @click.option('--euroc_folder', required=True, help="Path to a folder containing Euroc data. Typically called mav0")
 @click.option('--start_timestamp', required=True, help="Timestamp of where we want to start reading data from.")
 @click.option('--use_viewer', is_flag=True, help="Use a 3D viwer to view the camera path")
 @click.option('--log_level', required=False, default="debug", help="Level of python logging messages")
+
 def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
 
     level = levels.get(log_level.lower())
@@ -57,17 +59,21 @@ def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
                                                            euroc_calib.cam0_distortion_coeffs)
     camera_calib.set_extrinsics(euroc_calib.T_imu_cam0)
     config = AlgorithmConfig()
-    feature_tracker = FeatureTracker(config.feature_tracker_params, camera_calib)
+    feature_tracker = FeatureTracker(
+        config.feature_tracker_params, camera_calib)
 
     msckf = MSCKF(config.msckf_params, camera_calib)
     msckf.set_imu_noise(0.005, 0.05, 0.001, 0.01)
     msckf.set_imu_covariance(1e-5, 1e-12, 1e-2, 1e-2, 1e-2)
 
-    imu_data = csv_read_matrix(os.path.join(euroc_folder, IMU_FOLDER, DATA_FILE))
-    camera_data = csv_read_matrix(os.path.join(euroc_folder, LEFT_CAMERA_FOLDER, DATA_FILE))
+    imu_data = csv_read_matrix(os.path.join(
+        euroc_folder, IMU_FOLDER, DATA_FILE))
+    camera_data = csv_read_matrix(os.path.join(
+        euroc_folder, LEFT_CAMERA_FOLDER, DATA_FILE))
     imu_timestamps = [int(data[0]) for data in imu_data]
     camera_timestamps = [int(data[0]) for data in camera_data]
-    ground_truth_data = csv_read_matrix(os.path.join(euroc_folder, GT_FOLDER, DATA_FILE))
+    ground_truth_data = csv_read_matrix(
+        os.path.join(euroc_folder, GT_FOLDER, DATA_FILE))
     ground_truth_timestamps = [int(data[0]) for data in ground_truth_data]
 
     time_syncer = TimestampSynchronizer(int(EUROC_DELTA_TIME / 2))
@@ -85,7 +91,8 @@ def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
     if use_viewer:
         est_pose_queue = Queue()
         ground_truth_queue = Queue()
-        viewer_process = Process(target=create_and_run, args=(est_pose_queue, ground_truth_queue))
+        viewer_process = Process(target=create_and_run, args=(
+            est_pose_queue, ground_truth_queue))
         viewer_process.start()
 
     while time_syncer.has_data():
@@ -94,7 +101,8 @@ def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
         if "imu" in cur_data:
             imu_index = cur_data["imu"].index
             imu_line = imu_data[imu_index]
-            measurements = np.array([imu_line[1:]]).astype(np.float64).squeeze()
+            measurements = np.array([imu_line[1:]]).astype(
+                np.float64).squeeze()
 
             gyro = np.array(measurements[0:3])
             acc = np.array(measurements[3:])
@@ -106,12 +114,14 @@ def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
             last_imu_timestamp = timestamp
             dt_seconds = dt * NANOSECOND_TO_SECOND
             timestamp_seconds = timestamp * NANOSECOND_TO_SECOND
-            imu_buffer.append(IMUData(acc, gyro, timestamp_seconds, dt_seconds))
+            imu_buffer.append(
+                IMUData(acc, gyro, timestamp_seconds, dt_seconds))
 
         if "camera" in cur_data:
             index = cur_data["camera"].index
             image_name = camera_data[index][1]
-            img = cv2.imread(os.path.join(euroc_folder, LEFT_CAMERA_FOLDER, "data", image_name), 0)
+            img = cv2.imread(os.path.join(
+                euroc_folder, LEFT_CAMERA_FOLDER, "data", image_name), 0)
 
             feature_tracker.track(img, imu_buffer)
             measurements, ids = feature_tracker.get_current_normalized_keypoints_and_ids()
@@ -125,7 +135,8 @@ def run_on_euroc(euroc_folder, start_timestamp, use_viewer, log_level):
                 gt_bias_gyro = gt[10:13]
                 gt_bias_acc = gt[13:16]
                 gt_rot_matrx = hamiltonian_quaternion_to_rot_matrix(gt_quat)
-                msckf.initialize(gt_rot_matrx, gt_pos, gt_vel, gt_bias_acc, gt_bias_gyro)
+                msckf.initialize(gt_rot_matrx, gt_pos, gt_vel,
+                                 gt_bias_acc, gt_bias_gyro)
                 first_time = False
                 continue
 
