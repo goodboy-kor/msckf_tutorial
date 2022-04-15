@@ -1,13 +1,14 @@
+import logging
 import click
 
-@click.command()
-@click.option('--count', default=1, help='Number of greetings.')
-@click.option('--name', prompt='Your name',
-              help='The person to greet.')
-def hello(count, name):
-    """Simple program that greets NAME for a total of COUNT times."""
-    for x in range(count):
-        click.echo('Hello %s!' % name)
+logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
-    hello()
+LEFT_CAMERA_FOLDER = "cam0"
+RIGHT_CAMERA_FOLDER = "cam1"
+IMU_FOLDER = "imu0"
+GT_FOLDER = "state_groundtruth_estimate0"
+DATA_FILE = "data.csv"
+
+TIMESTAMP_INDEX = 0
+
+NANOSECOND_TO_SECOND = 1e-9

@@ -46,3 +46,13 @@ scripts/\.vs/scripts/v15/\.suo
 *.pyproj
 *.csv
 *.pt
+
+
+#example data
+data
+
+testByWE
+
+
+
+
