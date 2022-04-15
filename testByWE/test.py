@@ -1,14 +1,15 @@
-import logging
-import click
+import cv2
+import os
 
-logger = logging.getLogger(__name__)
+# fname = "./data/mav0-2/cam0/data/1403636579763555584.png"
+fname = "./data/mav0-2/cam0/data/download.jpeg"
+original = cv2.imread(fname, cv2.IMREAD_COLOR)
+gray = cv2.imread(fname, cv2.IMREAD_GRAYSCALE)
+unchange = cv2.imread(fname, cv2.IMREAD_UNCHANGED)
 
-LEFT_CAMERA_FOLDER = "cam0"
-RIGHT_CAMERA_FOLDER = "cam1"
-IMU_FOLDER = "imu0"
-GT_FOLDER = "state_groundtruth_estimate0"
-DATA_FILE = "data.csv"
+cv2.imshow('Original', original)
+cv2.imshow('Gray', gray)
+cv2.imshow('Unchange', unchange)
 
-TIMESTAMP_INDEX = 0
-
-NANOSECOND_TO_SECOND = 1e-9
+cv2.waitKey(0)
+cv2.destroyAllWindows()
